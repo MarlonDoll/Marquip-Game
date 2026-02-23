@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MARQUIP — The Party Answer Game</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+  :root {
+    --bg: #0d0d12;
+    --surface: #16161f;
+    --surface2: #1e1e2a;
+    --accent: #ff3f6c;
+    --accent2: #ffcc00;
+    --accent3: #00e5ff;
+    --text: #f0f0f5;
+    --muted: #6a6a85;
+    --border: #2a2a3a;
+    --radius: 12px;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(255,63,108,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 80%, rgba(0,229,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== LOGO ===== */
+  .logo {
+    font-family: var(--font-display);
+    font-size: clamp(60px, 12vw, 120px);
+    letter-spacing: 4px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    display: block;
+    filter: drop-shadow(0 0 30px rgba(255,63,108,0.3));
+    text-shadow: none;
+  }
+
+  .tagline {
+    text-align: center;
+    color: var(--muted);
+    font-size: 15px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 8px;
+    margin-bottom: 40px;
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--accent2);
+    margin-bottom: 20px;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: var(--radius);
+    border: none;
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 20px rgba(255,63,108,0.3);
+  }
+  .btn-primary:hover { background: #ff6085; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,63,108,0.4); }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); transform: translateY(-2px); }
+
+  .btn-accent {
+    background: var(--accent2);
+    color: #000;
+    box-shadow: 0 4px 20px rgba(255,204,0,0.25);
+  }
+  .btn-accent:hover { background: #ffd633; transform: translateY(-2px); }
+
+  .btn-cyan {
+    background: var(--accent3);
+    color: #000;
+    box-shadow: 0 4px 20px rgba(0,229,255,0.25);
+  }
+  .btn-cyan:hover { opacity: 0.9; transform: translateY(-2px); }
+
+  .btn-sm {
+    padding: 8px 16px;
+    font-size: 15px;
+    margin-bottom: 0;
+    width: auto;
+    letter-spacing: 1px;
+  }
+
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ===== INPUTS ===== */
+  input[type=text], input[type=number], textarea, select {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  label { display: block; color: var(--muted); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  textarea { min-height: 80px; resize: vertical; }
+  select { cursor: pointer; }
+
+  /* ===== PLAYER LIST ===== */
+  .player-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .player-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .player-chip .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent3);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* ===== GAME SCREEN ===== */
+  .round-badge {
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  .prompt-box {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    text-align: center;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .prompt-box::before {
+    content: '"';
+    position: absolute;
+    top: -10px; left: 10px;
+    font-family: Georgia, serif;
+    font-size: 100px;
+    color: rgba(255,63,108,0.1);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .prompt-text {
+    font-size: clamp(18px, 3vw, 26px);
+    font-weight: 600;
+    line-height: 1.4;
+    position: relative;
+  }
+
+  .answer-for {
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  /* ===== TIMER ===== */
+  .timer-bar-wrap {
+    background: var(--surface2);
+    border-radius: 100px;
+    height: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .timer-bar {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    transition: width 1s linear;
+  }
+  .timer-text {
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 36px;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+
+  /* ===== VOTING ===== */
+  .vote-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .vote-option {
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .vote-option:hover { border-color: var(--accent); transform: scale(1.02); }
+  .vote-option.selected { border-color: var(--accent2); background: rgba(255,204,0,0.1); }
+  .vote-option.winning { border-color: var(--accent3); background: rgba(0,229,255,0.1); }
+  .vote-option.losing { opacity: 0.5; }
+  .vote-option .voter-name { font-size: 12px; color: var(--muted); margin-top: 8px; letter-spacing: 1px; text-transform: uppercase; }
+  .vote-option .vote-count { font-family: var(--font-display); font-size: 40px; color: var(--accent2); margin-top: 8px; }
+
+  /* ===== SCORES ===== */
+  .score-list { list-style: none; }
+  .score-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .score-rank {
+    font-family: var(--font-display);
+    font-size: 28px;
+    width: 40px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .score-rank.gold { color: var(--accent2); }
+  .score-rank.silver { color: #c0c0c0; }
+  .score-rank.bronze { color: #cd7f32; }
+  .score-name { flex: 1; font-weight: 600; font-size: 16px; }
+  .score-pts {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--accent3);
+  }
+  .score-delta {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* ===== JOIN SCREEN ===== */
+  .room-code {
+    font-family: var(--font-display);
+    font-size: 64px;
+    letter-spacing: 12px;
+    color: var(--accent2);
+    text-align: center;
+    background: var(--surface2);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .room-code:hover { border-color: var(--accent2); }
+  .room-code-hint { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: 1px; margin-bottom: 20px; }
+
+  /* ===== STATUS ===== */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .status-waiting { background: rgba(255,204,0,0.15); color: var(--accent2); border: 1px solid rgba(255,204,0,0.3); }
+  .status-connected { background: rgba(0,229,255,0.15); color: var(--accent3); border: 1px solid rgba(0,229,255,0.3); }
+  .status-error { background: rgba(255,63,108,0.15); color: var(--accent); border: 1px solid rgba(255,63,108,0.3); }
+
+  /* ===== QUIPLASH 3-WAY VOTE ===== */
+  .answer-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+  .answer-item {
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .answer-item:hover { border-color: var(--accent); }
+  .answer-item.selected { border-color: var(--accent2); background: rgba(255,204,0,0.08); }
+
+  /* ===== TABS ===== */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--surface2); border-radius: var(--radius); padding: 4px; }
+  .tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted); transition: all 0.2s; letter-spacing: 1px; text-transform: uppercase; border: none; background: none; }
+  .tab.active { background: var(--accent); color: white; }
+
+  /* ===== MISC ===== */
+  .row { display: flex; gap: 12px; }
+  .row .btn { flex: 1; margin-bottom: 0; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .text-center { text-align: center; }
+  .text-muted { color: var(--muted); font-size: 14px; }
+  .mb-4 { margin-bottom: 16px; }
+  .mt-4 { margin-top: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .winner-banner {
+    font-family: var(--font-display);
+    font-size: 48px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .confetti { font-size: 40px; text-align: center; margin: 10px 0; animation: bounce 0.6s ease infinite alternate; }
+  @keyframes bounce { to { transform: translateY(-10px); } }
+  
+  .waiting-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 20px;
+  }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-size: 14px;
+    z-index: 1000;
+    animation: slideUp 0.3s ease;
+    white-space: nowrap;
+  }
+  @keyframes slideUp { from { opacity: 0; bottom: 0; } to { opacity: 1; bottom: 20px; } }
+
+  .custom-prompts-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
+  .custom-prompt-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  .custom-prompt-item button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 18px; }
+
+  @media(max-width: 600px) {
+    .vote-options { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .row { flex-direction: column; }
+    .row .btn { margin-bottom: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HOME SCREEN ===== -->
+<div id="screen-home" class="screen active">
+  <div class="container" style="padding-top: 60px;">
+    <span class="logo">MARQUIP</span>
+    <p class="tagline">The Party Answer Game · 2–32 Players</p>
+    
+    <div class="card">
+      <button class="btn btn-primary" onclick="showScreen('screen-host-setup')">🎮 HOST A GAME</button>
+      <button class="btn btn-secondary" onclick="showScreen('screen-join')">🔗 JOIN A GAME</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">HOW TO PLAY</div>
+      <p class="text-muted" style="line-height:1.7;">
+        Each round, players receive hilarious prompts and type their wittiest answers. Then everyone votes for their favorite response. The most-voted answer wins points! 
+        The host shares a room code — no app needed, just a browser.
+        <br><br>
+        <strong>Host:</strong> Pick settings and share your room code.<br>
+        <strong>Players:</strong> Enter the room code to join on any device.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOST SETUP ===== -->
+<div id="screen-host-setup" class="screen">
+  <div class="container" style="padding-top: 40px;">
+    <span class="logo" style="font-size: 48px;">MARQUIP</span>
+    
+    <div class="card">
+      <div class="card-title">GAME SETTINGS</div>
+      
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('settings')">Settings</button>
+        <button class="tab" onclick="switchTab('custom-prompts')">Custom Prompts</button>
+      </div>
+
+      <div id="tab-settings">
+        <label>Your Name (Host)</label>
+        <input type="text" id="host-name" placeholder="Enter your name..." maxlength="20">
+        
+        <label>Number of Rounds</label>
+        <select id="num-rounds">
+          <option value="3">3 Rounds (Quick ~15 min)</option>
+          <option value="5" selected>5 Rounds (Standard ~25 min)</option>
+          <option value="7">7 Rounds (Extended ~40 min)</option>
+          <option value="10">10 Rounds (Marathon)</option>
+        </select>
+
+        <label>Answer Time Limit</label>
+        <select id="answer-time">
+          <option value="45">45 Seconds (Fast)</option>
+          <option value="60" selected>60 Seconds (Normal)</option>
+          <option value="90">90 Seconds (Relaxed)</option>
+          <option value="120">2 Minutes (Chill)</option>
+        </select>
+
+        <label>Voting Time Limit</label>
+        <select id="vote-time">
+          <option value="20">20 Seconds</option>
+          <option value="30" selected>30 Seconds</option>
+          <option value="45">45 Seconds</option>
+        </select>
+
+        <label>Prompt Pack</label>
+        <select id="prompt-pack">
+          <option value="all">🌈 Everything (All 300+ Prompts)</option>
+          <option value="party">🎉 Party Vibes</option>
+          <option value="dark">🌑 Dark Humor</option>
+          <option value="wholesome">☀️ Wholesome</option>
+          <option value="custom-only">✏️ My Custom Prompts Only</option>
+        </select>
+
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="include-custom" style="width:auto;margin:0;"> Include custom prompts with selected pack
+        </label>
+      </div>
+
+      <div id="tab-custom-prompts" style="display:none;">
+        <label>Add a Custom Prompt</label>
+        <textarea id="custom-prompt-input" placeholder="Type a funny prompt... e.g. 'The worst possible name for a retirement home'"></textarea>
+        <button class="btn btn-secondary btn-sm" onclick="addCustomPrompt()" style="margin-bottom:16px;">+ Add Prompt</button>
+        
+        <div id="custom-prompts-count" class="text-muted mb-4" style="font-size:13px;">0 custom prompts added</div>
+        <ul class="custom-prompts-list" id="custom-prompts-list"></ul>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="btn btn-secondary" onclick="showScreen('screen-home')">← BACK</button>
+      <button class="btn btn-primary" onclick="startHosting()">CREATE LOBBY →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOST LOBBY ===== -->
+<div id="screen-host-lobby" class="screen">
+  <div class="container" style="padding-top: 40px;">
+    <span class="logo" style="font-size: 48px;">MARQUIP</span>
+    
+    <div class="card text-center">
+      <div class="card-title text-center">SHARE THIS CODE</div>
+      <div class="room-code" id="room-code-display" onclick="copyRoomCode()" title="Click to copy">----</div>
+      <div class="room-code-hint">Click to copy · Players go to this same page and enter the code</div>
+      <div id="host-connection-status" class="status-badge status-waiting">Setting up...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">PLAYERS (<span id="player-count">1</span>/32)</div>
+      <div class="player-list" id="lobby-player-list"></div>
+      <div class="text-muted" style="font-size:13px;">Waiting for more players to join...</div>
+    </div>
+
+    <button class="btn btn-accent" id="start-game-btn" onclick="hostStartGame()" style="margin-top:8px;">
+      START GAME ▶
+    </button>
+    <button class="btn btn-secondary" onclick="leaveGame()">← CANCEL</button>
+  </div>
+</div>
+
+<!-- ===== JOIN SCREEN ===== -->
+<div id="screen-join" class="screen">
+  <div class="container" style="padding-top: 60px;">
+    <span class="logo" style="font-size: 48px;">MARQUIP</span>
+    
+    <div class="card">
+      <div class="card-title">JOIN A GAME</div>
+      
+      <label>Your Name</label>
+      <input type="text" id="join-name" placeholder="Enter your name..." maxlength="20">
+      
+      <label>Room Code</label>
+      <input type="text" id="join-code" placeholder="e.g. A1B2" maxlength="10" style="text-transform:uppercase;font-family:var(--font-display);font-size:32px;letter-spacing:6px;text-align:center;">
+      
+      <div id="join-status" class="status-badge status-waiting" style="display:none;"></div>
+    </div>
+
+    <div class="row">
+      <button class="btn btn-secondary" onclick="showScreen('screen-home')">← BACK</button>
+      <button class="btn btn-cyan" onclick="joinGame()">JOIN GAME →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PLAYER WAITING ===== -->
+<div id="screen-player-wait" class="screen">
+  <div class="container" style="padding-top: 60px; text-align: center;">
+    <span class="logo" style="font-size: 48px;">MARQUIP</span>
+    <div class="card" style="margin-top: 30px;">
+      <div class="card-title">YOU'RE IN!</div>
+      <p id="player-wait-name" style="font-size: 20px; font-weight: 600; margin-bottom: 16px;"></p>
+      <div class="waiting-spinner"><div class="spinner"></div> Waiting for the host to start...</div>
+      <div class="player-list" id="wait-player-list" style="margin-top: 16px;"></div>
+    </div>
+    <button class="btn btn-secondary" onclick="leaveGame()">← LEAVE</button>
+  </div>
+</div>
+
+<!-- ===== ANSWERING SCREEN ===== -->
+<div id="screen-answer" class="screen">
+  <div class="container" style="padding-top: 30px;">
+    <span class="logo" style="font-size: 36px; margin-bottom: 16px; display:block;">MARQUIP</span>
+    <div class="round-badge" id="answer-round-badge">ROUND 1 · PROMPT 1 OF 3</div>
+    
+    <div class="timer-text" id="answer-timer">60</div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="answer-timer-bar" style="width:100%"></div></div>
+
+    <div class="prompt-box">
+      <div class="answer-for" id="answer-for-label">YOUR PROMPT</div>
+      <div class="prompt-text" id="answer-prompt-text"></div>
+    </div>
+
+    <label>Your Answer</label>
+    <textarea id="answer-input" placeholder="Type your funniest answer..." maxlength="150" rows="3"></textarea>
+    <button class="btn btn-primary" id="submit-answer-btn" onclick="submitAnswer()">SUBMIT ANSWER ✓</button>
+    <div id="answer-submitted-msg" style="display:none;text-align:center;color:var(--accent3);font-weight:600;padding:20px;">
+      ✓ Answer submitted! Waiting for others...
+    </div>
+  </div>
+</div>
+
+<!-- ===== VOTING SCREEN ===== -->
+<div id="screen-vote" class="screen">
+  <div class="container" style="padding-top: 30px;">
+    <span class="logo" style="font-size: 36px; margin-bottom: 16px; display:block;">MARQUIP</span>
+    <div class="round-badge" id="vote-round-badge">VOTE NOW!</div>
+    
+    <div class="timer-text" id="vote-timer">30</div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="vote-timer-bar" style="width:100%"></div></div>
+
+    <div class="prompt-box">
+      <div class="prompt-text" id="vote-prompt-text"></div>
+    </div>
+
+    <div class="answer-list" id="vote-answers-list"></div>
+    <button class="btn btn-accent" id="vote-submit-btn" onclick="submitVote()">CAST VOTE ✓</button>
+    <div id="vote-submitted-msg" style="display:none;text-align:center;color:var(--accent3);font-weight:600;padding:20px;">
+      ✓ Vote cast! Waiting for results...
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESULTS SCREEN (host shows, players watch) ===== -->
+<div id="screen-results" class="screen">
+  <div class="container" style="padding-top: 30px;">
+    <span class="logo" style="font-size: 36px; margin-bottom: 16px; display:block;">MARQUIP</span>
+    <div class="round-badge" id="results-badge">RESULTS</div>
+    
+    <div class="prompt-box">
+      <div class="prompt-text" id="results-prompt-text"></div>
+    </div>
+
+    <div id="results-answers" class="vote-options"></div>
+    
+    <div id="results-next-area" style="margin-top: 20px; display: none;">
+      <button class="btn btn-accent" onclick="hostNextRound()" id="next-btn">NEXT →</button>
+    </div>
+    <div id="results-wait-area" style="margin-top: 20px;">
+      <div class="waiting-spinner"><div class="spinner"></div> Waiting for next round...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCOREBOARD SCREEN ===== -->
+<div id="screen-scoreboard" class="screen">
+  <div class="container" style="padding-top: 30px;">
+    <span class="logo" style="font-size: 48px; margin-bottom: 8px; display:block;">MARQUIP</span>
+    <div class="round-badge" id="scoreboard-badge">ROUND SCORES</div>
+    
+    <div class="card">
+      <div class="card-title">LEADERBOARD</div>
+      <ul class="score-list" id="score-list"></ul>
+    </div>
+
+    <div id="scoreboard-next-area" style="display:none;">
+      <button class="btn btn-primary" onclick="hostContinue()" id="continue-btn">CONTINUE →</button>
+    </div>
+    <div id="scoreboard-wait-area">
+      <div class="waiting-spinner"><div class="spinner"></div> Waiting for host...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FINAL WINNER SCREEN ===== -->
+<div id="screen-winner" class="screen">
+  <div class="container" style="padding-top: 40px; text-align: center;">
+    <span class="logo" style="font-size: 60px; display:block;">MARQUIP</span>
+    <div class="confetti">🎉🏆🎉</div>
+    <div class="winner-banner" id="winner-name">WINNER!</div>
+    <div class="text-muted" id="winner-score" style="font-size: 20px; margin-bottom: 30px;"></div>
+
+    <div class="card">
+      <div class="card-title">FINAL SCOREBOARD</div>
+      <ul class="score-list" id="final-score-list"></ul>
+    </div>
+
+    <button class="btn btn-primary" onclick="playAgain()">PLAY AGAIN 🔄</button>
+    <button class="btn btn-secondary" onclick="leaveGame()">← HOME</button>
+  </div>
+</div>
+
+<script>
+// =====================================================
+//  MARQUIP — FULL GAME LOGIC
+// =====================================================
+
+// ===== 300+ PROMPTS =====
+const PROMPT_PACKS = {
+  party: [
+    "The worst thing to say at a birthday party",
+    "A rejected name for a new cocktail",
+    "What the DJ actually plays after everyone asks him to stop",
+    "The worst Uber rating explanation",
+    "What you find under the couch at a frat house",
+    "A bad reason to start a conga line",
+    "The most awkward thing to drop on the dance floor",
+    "What the bouncer is really writing in his notebook",
+    "A terrible theme for a bachelorette party",
+    "The world's most disappointing party trick",
+    "What people regret saying in the group chat",
+    "The least helpful thing to say to someone who's lost at a festival",
+    "A party game that ends friendships",
+    "The worst thing to find in the punch bowl",
+    "What the designated driver is secretly thinking",
+    "A terrible icebreaker question for a house party",
+    "The most passive-aggressive thing to write on a birthday card",
+    "A piñata filling that kills the mood",
+    "What the neighbor's complaint letter actually says",
+    "The worst plus-one to bring to a wedding",
+  ],
+  dark: [
+    "A cheerful name for something terrifying",
+    "What the skeleton in the closet is actually doing",
+    "The worst horoscope ever written",
+    "A bad time to discover your GPS is wrong",
+    "The world's most depressing motivational poster",
+    "What ghosts are really haunting people about",
+    "A terrible name for a crisis hotline",
+    "The last thing anyone wants to read on a fortune cookie",
+    "What's really inside a politician's briefcase",
+    "The most unsettling thing a child can say at dinner",
+    "A bad time to run out of Wi-Fi",
+    "What the dentist is actually thinking",
+    "The world's worst self-help book title",
+    "What happens when you mix up your therapist and your boss's email",
+    "A bad thing to discover mid-skydive",
+    "The saddest item on a to-do list",
+    "What heaven's Yelp reviews actually say",
+    "A terrible name for a funeral home",
+    "The most anticlimactic apocalypse scenario",
+    "What the fine print on your soul contract says",
+  ],
+  wholesome: [
+    "What grandma calls the internet",
+    "The most wholesome thing a golden retriever is thinking",
+    "A surprise gift that accidentally becomes someone's favorite thing",
+    "What the class hamster writes in its diary",
+    "The nicest possible reason someone's crying on a park bench",
+    "What a librarian dreams about",
+    "The cutest misunderstanding between two old people",
+    "What your houseplant would say if it could talk",
+    "A compliment so sincere it becomes awkward",
+    "What the mailman's highlight of his day is",
+    "The sweetest thing you could find in a lunchbox",
+    "What sunshine would say if it were a person",
+    "A bedtime story that's way too comforting",
+    "What the neighborhood squirrel has learned about humans",
+    "The best possible outcome of a wrong number",
+    "What puppies actually dream about",
+    "A thank you card that makes the recipient cry happy tears",
+    "What rain sounds like to someone who loves it",
+    "The most heartwarming reason someone learned to cook",
+    "What your childhood stuffed animal would say to you now",
+  ],
+};
+
+// ===== ALL 300+ PROMPTS =====
+const ALL_PROMPTS = [
+  // Party
+  ...PROMPT_PACKS.party,
+  // Dark
+  ...PROMPT_PACKS.dark,
+  // Wholesome
+  ...PROMPT_PACKS.wholesome,
+  // GENERAL BATCH
+  "A terrible first line of a novel",
+  "The most useless superpower",
+  "A rejected slogan for a fast food chain",
+  "What aliens are actually observing about Earth",
+  "The worst possible name for a children's book",
+  "What your pet is plotting while you're at work",
+  "A bad sign you've been on the internet too long",
+  "The most suspicious thing to Google at 3AM",
+  "A job title that sounds important but isn't",
+  "What robots complain about at their union meetings",
+  "The laziest solution to climate change",
+  "A terrible supervillain origin story",
+  "What really happens at the bottom of the ocean",
+  "The worst possible last words",
+  "A bad reason to call in sick",
+  "What the voices in your GPS really want",
+  "The most dangerous item at a garage sale",
+  "A rejected name for a pharmaceutical drug",
+  "What a time traveler would be most disappointed by",
+  "The least romantic thing to say during a proposal",
+  "A terrible pitch for a new TV show",
+  "What kids think adults do all day",
+  "The world's most boring superhero",
+  "A bad piece of advice from a fortune teller",
+  "What the Moon is hiding from us",
+  "The saddest emoji combination",
+  "A rejected Olympic sport",
+  "What Santa does in July",
+  "The worst way to break up with someone via emoji",
+  "A terrible name for a dating app",
+  "What happens when you sneeze with your eyes open",
+  "The most unhelpful warning label",
+  "A bad reason to become a pirate",
+  "What the first rule of a secret society should be",
+  "The worst thing to find in a fortune cookie",
+  "A terrible business idea that somehow gets funded",
+  "What ants are actually saying when they march",
+  "The most polite insult ever spoken",
+  "A bad substitute for sunscreen",
+  "What happens in the town where all the missing socks go",
+  "The worst possible name for a baby",
+  "A rejected slogan for a gym",
+  "What your search history would confess about you",
+  "The most awkward thing to order at a restaurant",
+  "A terrible self-defense move",
+  "What traffic cones dream about",
+  "The worst theme for a children's birthday party",
+  "A bad thing to say during a job interview",
+  "What clouds are made of, according to a five-year-old",
+  "The most useless item in a survival kit",
+  "A terrible name for a sports team",
+  "What an AI really thinks about humans",
+  "The least inspirational place to hang a motivational quote",
+  "A bad reason to start learning a new language",
+  "What fish talk about when humans aren't watching",
+  "The most unsettling way to greet a stranger",
+  "A terrible password that somehow becomes standard practice",
+  "What the last remaining pay phone is thinking",
+  "The worst way to announce a pregnancy",
+  "A rejected name for a new country",
+  "What parents think 'the cloud' is",
+  "The most unusual thing to collect",
+  "A terrible name for a life coach",
+  "What dreams would be about if they made more sense",
+  "The worst advice column response ever published",
+  "A bad slogan for a dentist office",
+  "What cavemen thought about our technology",
+  "The most disappointing magic trick",
+  "A terrible way to end a business email",
+  "What the elevator is judging you for",
+  "The worst addition to a pizza",
+  "A bad motivational speech opener",
+  "What a spider thinks every time you use a broom",
+  "The most ineffective diet",
+  "A terrible museum exhibit",
+  "What tourists misunderstand about your city",
+  "The worst ice cream flavor ever invented",
+  "A bad reason to become a doctor",
+  "What the moon sees on a typical Friday night",
+  "The most confusing thing about modern life",
+  "A terrible app idea that somehow gets 5 stars",
+  "What a parking meter would say if it could talk",
+  "The worst camping advice",
+  "A rejected mascot for a professional sports team",
+  "What the number 4 is insecure about",
+  "The most unnecessary life hack",
+  "A terrible name for a therapy practice",
+  "What dogs are really barking about",
+  "The worst possible sequel to a beloved film",
+  "A bad fortune for a Magic 8-Ball",
+  "What office plants witness every day",
+  "The most suspicious thing someone can say in a library",
+  "A terrible name for a yoga class",
+  "What teenagers think adulthood is like",
+  "The world's worst handshake",
+  "A bad reason to call the police",
+  "What would happen if elevators had Yelp reviews",
+  "The least helpful doctor's diagnosis",
+  "A terrible reason to quit your job",
+  "What vending machines are angry about",
+  "The most over-dramatic weather report",
+  "A bad slogan for a hot air balloon company",
+  "What happens when nobody is watching the Roomba",
+  "The worst travel souvenir",
+  "A terrible tagline for a mattress store",
+  "What mannequins discuss after closing time",
+  "The most awkward family photo caption",
+  "A bad idea for a mobile game",
+  "What the last dinosaur was thinking",
+  "The worst way to start a campfire story",
+  "A terrible children's toy recalled immediately",
+  "What your refrigerator knows about you",
+  "The most useless degree you could earn",
+  "A bad reason to become a vegetarian",
+  "What would happen if trees could walk",
+  "The worst possible Wi-Fi name",
+  "A terrible name for a charity",
+  "What pigeons are actually saying",
+  "The most terrifying knock-knock joke punchline",
+  "A bad item to put on a resume",
+  "What would happen if dogs could drive",
+  "The worst name for a restaurant",
+  "A terrible idea for a company retreat",
+  "What the sun thinks of us wearing sunscreen",
+  "The most anticlimactic treasure hunt reward",
+  "A bad name for a new country",
+  "What a shopping cart thinks as it rolls away in the parking lot",
+  "The worst possible tour guide script",
+  "A terrible reason to start a podcast",
+  "What happens in a town where everyone can read minds",
+  "The most unsettling greeting card message",
+  "A bad idea for a new holiday tradition",
+  "What office staplers gossip about",
+  "The worst name for a new planet",
+  "A terrible reason to call a meeting",
+  "What happens at the world's least exciting theme park",
+  "The most confusing street name in a city",
+  "A bad name for a cooking show",
+  "What icebergs are hiding below the surface",
+  "The worst piece of furniture ever invented",
+  "A terrible reason to join a cult",
+  "What would happen if shadows became sentient",
+  "The most suspicious thing on a grocery list",
+  "A bad add-on feature for a self-driving car",
+  "What coins in a wishing fountain wish for",
+  "The worst icebreaker for a support group",
+  "A terrible reality TV show concept",
+  "What happens in the secret society of people who wake up before 5AM",
+  "The most worrying thing to find in a library's lost and found",
+  "A bad line to open a best man speech",
+  "What the last rotary phone thinks of smartphones",
+  "The worst name for a craft beer",
+  "A terrible dating profile opener",
+  "What squirrels really do with all those acorns",
+  "The most suspicious thing written in a yearbook",
+  "A bad name for a cruise ship",
+  "What happens if you take astrology too literally",
+  "The worst possible theme for a school dance",
+  "A terrible way to end a TED talk",
+  "What the office microwave has seen",
+  "The most confusing thing about sleep",
+  "A bad marketing strategy for selling cheese",
+  "What would happen if hair grew back instantly after cutting",
+  "The worst hidden fee on a hotel bill",
+  "A terrible explanation for being late to a meeting",
+  "What traffic lights think about during rush hour",
+  "The most passive-aggressive office kitchen sign",
+  "A bad warning label for a trampoline",
+  "What a snowman thinks as spring arrives",
+  "The worst reality show for senior citizens",
+  "A terrible name for a perfume",
+  "What would happen if libraries could fine people for emotional overreactions",
+  "The most unnecessary invention of the last decade",
+  "A bad slogan for a moving company",
+  "What vegetables whisper to each other in the produce aisle",
+  "The worst name for a band",
+  "A terrible life lesson learned from social media",
+  "What would happen if dreams were publicly streamed",
+  "The most unfortunate autocorrect message",
+  "A bad name for a nonprofit",
+  "What escalators think about people who just stand there",
+  "The worst idea for a workout class",
+  "A terrible plot twist in an otherwise wholesome film",
+  "What the cursor thinks when you won't stop clicking",
+  "The most uncomfortable silence in history",
+  "A bad name for a meditation app",
+  "What would happen if people had loading screens",
+  "The worst way to discover your house is haunted",
+  "A terrible name for a new currency",
+  "What houseplants are silently judging you for",
+  "The most suspicious reason to know exactly how many steps you've taken today",
+  "A bad introduction at a networking event",
+  "What Siri secretly thinks of your questions",
+  "The worst career pivot from politician to influencer",
+  "A terrible way to describe your personality on a first date",
+  "What the barista is actually writing on your cup",
+  "The most passive-aggressive way to give a gift",
+  "A bad name for a power outage preparedness kit",
+  "What a city pigeon knows that you don't",
+  "The worst reason to quit a gym in January",
+  "A terrible name for a home security system",
+  "What the loading bar thinks about when it slows to 99%",
+  "The most useless piece of trivia you actually know",
+  "A bad name for a haircut",
+  "What an alarm clock thinks about on weekends",
+  "The worst motivational poster for a hospital waiting room",
+  "A terrible response to 'How are you?'",
+  "What would happen if résumés had to include embarrassing moments",
+  "The least impressive flex",
+  "A bad name for a co-working space",
+  "What a pothole thinks when a car hits it",
+  "The worst advice for someone starting a diet",
+  "A terrible name for a new airline",
+  "What would happen if every notification you ignored became sentient",
+  "The most elaborate excuse for forgetting a birthday",
+  "A bad slogan for a car dealership",
+  "What desk chairs know about their owners",
+  "The worst name for a startup",
+  "A terrible life lesson you learned way too late",
+  "What a grocery store cart thinks of self-checkout",
+  "The most overhyped thing about adulthood",
+  "A bad name for a home improvement show",
+  "What would happen if people had expiration dates printed on them",
+  "The worst possible thing to say to a coworker on Monday morning",
+  "A terrible reason to avoid going to the doctor",
+  "What happens when a robot becomes sentient during its shift at a call center",
+  "The most suspicious thing overheard on public transit",
+  "A bad name for a space mission",
+  "What would happen if your conscience had a Yelp page",
+  "The worst possible tourist attraction",
+  "A terrible tip jar message",
+  "What a cloud thinks right before it rains",
+  "The most politely devastating thing a teacher has written on a paper",
+  "A bad replacement for a GPS",
+  "What your bank statement says about your personality",
+  "The worst surprise ending to a children's story",
+  "A terrible name for a new Olympic event",
+  "What would happen if everyone could see each other's browser history",
+  "The most overdramatic way to quit a job",
+  "A bad slogan for a public library",
+  "What pigeons discuss at their annual summit",
+  "The worst life advice you've actually received",
+  "A terrible way to introduce yourself at a dinner party",
+  "What the moon actually thinks of the tides",
+  "The most over-engineered solution to a simple problem",
+  "A bad name for a social media platform",
+  "What would happen if every lie someone told turned their nose slightly red",
+  "The worst prank that accidentally becomes a tradition",
+  "A terrible alternative to coffee",
+  "What a smartphone notices about its owner that it would never say",
+  "The most unsettling thing about mirrors",
+  "A bad title for a self-published memoir",
+  "What would happen if music played automatically whenever you walked into a room",
+  "The worst reason to end a friendship",
+  "A terrible way to celebrate a promotion",
+  "What a broken umbrella thinks as it's thrown away",
+  "The most ambitious thing to do on a lazy Sunday",
+  "A bad slogan for sunscreen",
+  "What your college roommate remembers about you",
+  "The worst trend that started as a joke",
+  "A terrible reason to run for president",
+  "What a treadmill thinks during a New Year's resolution rush",
+  "The most underwhelming thing to go viral",
+  "A bad name for a political party",
+  "What would happen if people broadcast live commentary on their own life",
+  "The worst thing to find in your annual performance review",
+  "A terrible addition to a wedding vow",
+  "What would happen if office chairs could unionize",
+  "The most confusing thing about the English language",
+  "A bad replacement for a smoke alarm",
+  "What a broken ATM dreams about",
+  "The worst possible motivational quote on a gym wall",
+  "A terrible sequel to a beloved game show",
+  "What would happen if every meeting that could have been an email became a puppet show instead",
+];
+
+// Remove duplicates just in case
+const UNIQUE_PROMPTS = [...new Set(ALL_PROMPTS)];
+
+// =====================================================
+//  GAME STATE
+// =====================================================
+let state = {
+  isHost: false,
+  peer: null,
+  connections: [],
+  players: [],    // [{id, name, score, prevScore}]
+  myId: null,
+  myName: '',
+  hostConn: null, // client's connection to host
+  gameSettings: {},
+  currentRound: 0,
+  totalRounds: 5,
+  prompts: [],
+  currentPromptIdx: 0,
+  answers: {},    // {playerId: answer}
+  votes: {},      // {voterId: answererPlayerId}
+  timerInterval: null,
+  phase: 'lobby', // lobby | answering | voting | results | scoreboard | winner
+  customPrompts: [],
+  myVote: null,
+  myAnswer: '',
+  answerSubmitted: false,
+  voteSubmitted: false,
+};
+
+// =====================================================
+//  SCREEN MANAGEMENT
+// =====================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-settings').style.display = 'none';
+  document.getElementById('tab-custom-prompts').style.display = 'none';
+  
+  if (tab === 'settings') {
+    document.getElementById('tab-settings').style.display = 'block';
+    document.querySelectorAll('.tab')[0].classList.add('active');
+  } else {
+    document.getElementById('tab-custom-prompts').style.display = 'block';
+    document.querySelectorAll('.tab')[1].classList.add('active');
+  }
+}
+
+// =====================================================
+//  CUSTOM PROMPTS
+// =====================================================
+function addCustomPrompt() {
+  const input = document.getElementById('custom-prompt-input');
+  const text = input.value.trim();
+  if (!text) return;
+  state.customPrompts.push(text);
+  input.value = '';
+  renderCustomPrompts();
+}
+
+function removeCustomPrompt(idx) {
+  state.customPrompts.splice(idx, 1);
+  renderCustomPrompts();
+}
+
+function renderCustomPrompts() {
+  const list = document.getElementById('custom-prompts-list');
+  const count = document.getElementById('custom-prompts-count');
+  count.textContent = `${state.customPrompts.length} custom prompt${state.customPrompts.length !== 1 ? 's' : ''} added`;
+  list.innerHTML = state.customPrompts.map((p, i) => `
+    <li class="custom-prompt-item">
+      <span>${p}</span>
+      <button onclick="removeCustomPrompt(${i})">×</button>
+    </li>
+  `).join('');
+}
+
+// =====================================================
+//  NOTIFICATIONS
+// =====================================================
+function notify(msg, duration = 2500) {
+  const el = document.createElement('div');
+  el.className = 'notification';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), duration);
+}
+
+// =====================================================
+//  PEER SETUP
+// =====================================================
+function generateRoomCode() {
+  return Math.random().toString(36).substring(2, 6).toUpperCase();
+}
+
+function startHosting() {
+  const name = document.getElementById('host-name').value.trim();
+  if (!name) { alert('Enter your name first!'); return; }
+
+  state.isHost = true;
+  state.myName = name;
+  state.gameSettings = {
+    rounds: parseInt(document.getElementById('num-rounds').value),
+    answerTime: parseInt(document.getElementById('answer-time').value),
+    voteTime: parseInt(document.getElementById('vote-time').value),
+    promptPack: document.getElementById('prompt-pack').value,
+    includeCustom: document.getElementById('include-custom').checked,
+    customPrompts: [...state.customPrompts],
+  };
+
+  const roomCode = generateRoomCode();
+  const peerId = 'marquip-' + roomCode;
+
+  showScreen('screen-host-lobby');
+  document.getElementById('room-code-display').textContent = roomCode;
+  document.getElementById('host-connection-status').textContent = 'Connecting...';
+  document.getElementById('host-connection-status').className = 'status-badge status-waiting';
+
+  const peer = new Peer(peerId, { debug: 0 });
+  state.peer = peer;
+  state.myId = peerId;
+  state.players = [{ id: peerId, name, score: 0, prevScore: 0 }];
+
+  peer.on('open', () => {
+    document.getElementById('host-connection-status').textContent = '✓ Ready to accept players';
+    document.getElementById('host-connection-status').className = 'status-badge status-connected';
+    renderLobbyPlayers();
+  });
+
+  peer.on('connection', (conn) => {
+    conn.on('open', () => {
+      state.connections.push(conn);
+      conn.on('data', (data) => handleClientMessage(conn, data));
+      conn.on('close', () => handlePlayerDisconnect(conn));
+    });
+  });
+
+  peer.on('error', (err) => {
+    if (err.type === 'unavailable-id') {
+      // room code collision, retry
+      startHosting();
+    } else {
+      document.getElementById('host-connection-status').textContent = 'Connection error: ' + err.message;
+      document.getElementById('host-connection-status').className = 'status-badge status-error';
+    }
+  });
+}
+
+function handlePlayerDisconnect(conn) {
+  state.connections = state.connections.filter(c => c !== conn);
+  state.players = state.players.filter(p => p.id !== conn.peer);
+  renderLobbyPlayers();
+  notify(`A player disconnected`);
+}
+
+function handleClientMessage(conn, data) {
+  if (data.type === 'join') {
+    const player = { id: conn.peer, name: data.name, score: 0, prevScore: 0 };
+    state.players.push(player);
+    // broadcast updated player list
+    broadcastToAll({ type: 'player-list', players: state.players });
+    renderLobbyPlayers();
+    notify(`${data.name} joined!`);
+  }
+  if (data.type === 'answer') {
+    state.answers[conn.peer] = data.answer;
+    checkAllAnswered();
+  }
+  if (data.type === 'vote') {
+    state.votes[conn.peer] = data.vote;
+    checkAllVoted();
+  }
+}
+
+function broadcastToAll(msg) {
+  state.connections.forEach(c => { try { c.send(msg); } catch(e) {} });
+}
+
+function sendToHost(msg) {
+  if (state.hostConn) { try { state.hostConn.send(msg); } catch(e) {} }
+}
+
+// ===== JOIN =====
+function joinGame() {
+  const name = document.getElementById('join-name').value.trim();
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (!name) { alert('Enter your name!'); return; }
+  if (!code) { alert('Enter a room code!'); return; }
+
+  state.myName = name;
+  state.isHost = false;
+
+  const statusEl = document.getElementById('join-status');
+  statusEl.style.display = 'inline-block';
+  statusEl.textContent = 'Connecting...';
+  statusEl.className = 'status-badge status-waiting';
+
+  const peer = new Peer(undefined, { debug: 0 });
+  state.peer = peer;
+
+  peer.on('open', (id) => {
+    state.myId = id;
+    const hostId = 'marquip-' + code;
+    const conn = peer.connect(hostId);
+    state.hostConn = conn;
+
+    conn.on('open', () => {
+      conn.send({ type: 'join', name });
+      statusEl.textContent = '✓ Connected!';
+      statusEl.className = 'status-badge status-connected';
+      
+      document.getElementById('player-wait-name').textContent = `You're in as "${name}"`;
+      showScreen('screen-player-wait');
+    });
+
+    conn.on('data', (data) => handleHostMessage(data));
+    
+    conn.on('error', (e) => {
+      statusEl.textContent = 'Connection failed. Check the room code.';
+      statusEl.className = 'status-badge status-error';
+    });
+
+    conn.on('close', () => {
+      notify('Disconnected from host');
+      leaveGame();
+    });
+  });
+
+  peer.on('error', (err) => {
+    statusEl.textContent = 'Failed: ' + err.message;
+    statusEl.className = 'status-badge status-error';
+  });
+}
+
+function handleHostMessage(data) {
+  switch(data.type) {
+    case 'player-list':
+      state.players = data.players;
+      renderWaitPlayers();
+      break;
+    case 'game-start':
+      state.gameSettings = data.settings;
+      state.totalRounds = data.settings.rounds;
+      state.players = data.players;
+      break;
+    case 'round-start':
+      state.currentRound = data.round;
+      state.currentPromptIdx = data.promptIdx;
+      break;
+    case 'prompt':
+      startAnsweringPhase(data.prompt, data.round, data.promptIdx, data.totalPrompts);
+      break;
+    case 'voting':
+      startVotingPhase(data.prompt, data.answers, data.round, data.promptIdx, data.totalPrompts);
+      break;
+    case 'results':
+      showResultsPhase(data.prompt, data.answers, data.votes, data.scores);
+      break;
+    case 'scoreboard':
+      showScoreboardPhase(data.players, false);
+      break;
+    case 'winner':
+      showWinnerPhase(data.players);
+      break;
+  }
+}
+
+// =====================================================
+//  LOBBY
+// =====================================================
+function renderLobbyPlayers() {
+  const list = document.getElementById('lobby-player-list');
+  const count = document.getElementById('player-count');
+  list.innerHTML = state.players.map(p =>
+    `<div class="player-chip"><div class="dot"></div>${p.name}${p.id === state.myId ? ' (you)' : ''}</div>`
+  ).join('');
+  count.textContent = state.players.length;
+}
+
+function renderWaitPlayers() {
+  const list = document.getElementById('wait-player-list');
+  list.innerHTML = state.players.map(p =>
+    `<div class="player-chip"><div class="dot"></div>${p.name}${p.id === state.myId ? ' (you)' : ''}</div>`
+  ).join('');
+}
+
+function copyRoomCode() {
+  const code = document.getElementById('room-code-display').textContent;
+  navigator.clipboard.writeText(code).then(() => notify('Room code copied! 📋'));
+}
+
+// =====================================================
+//  GAME FLOW (HOST)
+// =====================================================
+function hostStartGame() {
+  if (state.players.length < 2) { alert('Need at least 2 players!'); return; }
+  
+  // Build prompt pool
+  const settings = state.gameSettings;
+  let pool;
+  if (settings.promptPack === 'all') pool = [...UNIQUE_PROMPTS];
+  else if (settings.promptPack === 'custom-only') pool = [...(settings.customPrompts || [])];
+  else pool = [...(PROMPT_PACKS[settings.promptPack] || UNIQUE_PROMPTS)];
+
+  if (settings.includeCustom && settings.customPrompts?.length) {
+    pool = [...pool, ...settings.customPrompts];
+  }
+
+  // Shuffle and pick
+  shuffle(pool);
+  const promptsPerRound = Math.min(3, Math.ceil(state.players.length / 2));
+  state.prompts = pool.slice(0, settings.rounds * promptsPerRound);
+  state.totalRounds = settings.rounds;
+  state.currentRound = 0;
+  state.currentPromptIdx = 0;
+
+  broadcastToAll({ type: 'game-start', settings, players: state.players });
+  hostNextPrompt();
+}
+
+function hostNextPrompt() {
+  state.answers = {};
+  state.votes = {};
+  state.myAnswer = '';
+  state.myVote = null;
+  state.answerSubmitted = false;
+  state.voteSubmitted = false;
+
+  const promptsPerRound = Math.min(3, Math.ceil(state.players.length / 2));
+  const totalPrompts = state.totalRounds * promptsPerRound;
+
+  if (state.currentPromptIdx >= state.prompts.length) {
+    hostShowFinalWinner();
+    return;
+  }
+
+  const prompt = state.prompts[state.currentPromptIdx];
+  state.currentRound = Math.floor(state.currentPromptIdx / promptsPerRound) + 1;
+  const roundPromptIdx = (state.currentPromptIdx % promptsPerRound) + 1;
+
+  broadcastToAll({ type: 'prompt', prompt, round: state.currentRound, promptIdx: roundPromptIdx, totalPrompts: promptsPerRound });
+  startAnsweringPhase(prompt, state.currentRound, roundPromptIdx, promptsPerRound);
+
+  // Start answer timer
+  clearTimer();
+  let t = state.gameSettings.answerTime;
+  state.timerInterval = setInterval(() => {
+    t--;
+    if (t <= 0) {
+      clearTimer();
+      // Fill any missing answers
+      state.players.forEach(p => {
+        if (!state.answers[p.id]) state.answers[p.id] = '(no answer)';
+      });
+      hostStartVoting();
+    }
+  }, 1000);
+}
+
+function checkAllAnswered() {
+  const answered = state.players.every(p => state.answers[p.id] !== undefined);
+  if (answered) {
+    clearTimer();
+    hostStartVoting();
+  }
+}
+
+function hostStartVoting() {
+  const prompt = state.prompts[state.currentPromptIdx];
+  // Build answers list for voting (exclude own answer from voting)
+  const answersArr = state.players.map(p => ({ playerId: p.id, answer: state.answers[p.id] || '(no answer)' }));
+  
+  broadcastToAll({ type: 'voting', prompt, answers: answersArr });
+  
+  // Show voting to host too (they vote as a player)
+  const promptsPerRound = Math.min(3, Math.ceil(state.players.length / 2));
+  startVotingPhase(prompt, answersArr, state.currentRound, (state.currentPromptIdx % promptsPerRound) + 1, promptsPerRound);
+
+  // Vote timer
+  let t = state.gameSettings.voteTime;
+  state.timerInterval = setInterval(() => {
+    t--;
+    if (t <= 0) {
+      clearTimer();
+      hostTallyVotes();
+    }
+  }, 1000);
+}
+
+function checkAllVoted() {
+  const voted = state.players.every(p => state.votes[p.id] !== undefined);
+  if (voted) {
+    clearTimer();
+    hostTallyVotes();
+  }
+}
+
+function hostTallyVotes() {
+  // Include host vote
+  if (state.myVote) state.votes[state.myId] = state.myVote;
+  
+  const prompt = state.prompts[state.currentPromptIdx];
+  const answersArr = state.players.map(p => ({ playerId: p.id, answer: state.answers[p.id] || '(no answer)' }));
+
+  // Count votes
+  const voteCounts = {};
+  Object.values(state.votes).forEach(votedFor => {
+    voteCounts[votedFor] = (voteCounts[votedFor] || 0) + 1;
+  });
+
+  // Award points
+  state.players.forEach(p => {
+    p.prevScore = p.score;
+    const votes = voteCounts[p.id] || 0;
+    p.score += votes * 500;
+  });
+
+  const scores = {};
+  state.players.forEach(p => scores[p.id] = p.score);
+
+  broadcastToAll({ type: 'results', prompt, answers: answersArr, votes: state.votes, scores });
+  showResultsPhase(prompt, answersArr, state.votes, scores);
+}
+
+function hostNextRound() {
+  state.currentPromptIdx++;
+  const promptsPerRound = Math.min(3, Math.ceil(state.players.length / 2));
+  const newRound = Math.floor(state.currentPromptIdx / promptsPerRound) + 1;
+
+  if (state.currentPromptIdx >= state.prompts.length || newRound > state.totalRounds) {
+    hostShowFinalWinner();
+    return;
+  }
+
+  // Show scoreboard between rounds
+  const endOfPrevRound = state.currentPromptIdx % promptsPerRound === 0;
+  if (endOfPrevRound) {
+    broadcastToAll({ type: 'scoreboard', players: state.players });
+    showScoreboardPhase(state.players, true);
+  } else {
+    hostNextPrompt();
+  }
+}
+
+function hostContinue() {
+  hostNextPrompt();
+}
+
+function hostShowFinalWinner() {
+  const sorted = [...state.players].sort((a, b) => b.score - a.score);
+  broadcastToAll({ type: 'winner', players: sorted });
+  showWinnerPhase(sorted);
+}
+
+// =====================================================
+//  ANSWERING PHASE
+// =====================================================
+function startAnsweringPhase(prompt, round, promptIdx, totalPrompts) {
+  state.answerSubmitted = false;
+  state.myAnswer = '';
+  
+  document.getElementById('answer-round-badge').textContent = `ROUND ${round} · PROMPT ${promptIdx} OF ${totalPrompts}`;
+  document.getElementById('answer-prompt-text').textContent = prompt;
+  document.getElementById('answer-for-label').textContent = 'YOUR PROMPT';
+  document.getElementById('answer-input').value = '';
+  document.getElementById('answer-input').disabled = false;
+  document.getElementById('submit-answer-btn').style.display = 'block';
+  document.getElementById('answer-submitted-msg').style.display = 'none';
+  showScreen('screen-answer');
+
+  // Timer display
+  const total = state.gameSettings?.answerTime || 60;
+  let t = total;
+  document.getElementById('answer-timer').textContent = t;
+  document.getElementById('answer-timer-bar').style.width = '100%';
+
+  if (!state.isHost) {
+    // Client-side timer display
+    const ti = setInterval(() => {
+      t--;
+      document.getElementById('answer-timer').textContent = Math.max(0, t);
+      document.getElementById('answer-timer-bar').style.width = (Math.max(0, t) / total * 100) + '%';
+      if (t <= 0) clearInterval(ti);
+    }, 1000);
+    state.timerInterval = ti;
+  } else {
+    // Host controls real timer, but also show countdown
+    const ti = setInterval(() => {
+      t--;
+      document.getElementById('answer-timer').textContent = Math.max(0, t);
+      document.getElementById('answer-timer-bar').style.width = (Math.max(0, t) / total * 100) + '%';
+      if (t <= 0) clearInterval(ti);
+    }, 1000);
+  }
+}
+
+function submitAnswer() {
+  const answer = document.getElementById('answer-input').value.trim();
+  if (!answer) { notify('Type an answer first!'); return; }
+  
+  state.myAnswer = answer;
+  state.answerSubmitted = true;
+  document.getElementById('answer-input').disabled = true;
+  document.getElementById('submit-answer-btn').style.display = 'none';
+  document.getElementById('answer-submitted-msg').style.display = 'block';
+
+  if (state.isHost) {
+    state.answers[state.myId] = answer;
+    checkAllAnswered();
+  } else {
+    sendToHost({ type: 'answer', answer });
+  }
+}
+
+// =====================================================
+//  VOTING PHASE
+// =====================================================
+function startVotingPhase(prompt, answers, round, promptIdx, totalPrompts) {
+  state.voteSubmitted = false;
+  state.myVote = null;
+
+  document.getElementById('vote-round-badge').textContent = `ROUND ${round} · VOTE!`;
+  document.getElementById('vote-prompt-text').textContent = prompt;
+  document.getElementById('vote-submit-btn').style.display = 'block';
+  document.getElementById('vote-submitted-msg').style.display = 'none';
+
+  // Render answers (can't vote for own)
+  const list = document.getElementById('vote-answers-list');
+  list.innerHTML = answers.map(a => {
+    const isOwn = a.playerId === state.myId;
+    return `
+      <div class="answer-item ${isOwn ? 'own-answer' : ''}" 
+           id="vote-opt-${a.playerId}"
+           onclick="${isOwn ? 'notify("You can\'t vote for yourself!")' : `selectVote('${a.playerId}')`}">
+        <span>${a.answer}</span>
+        ${isOwn ? '<span style="color:var(--muted);font-size:12px;">YOUR ANSWER</span>' : ''}
+      </div>
+    `;
+  }).join('');
+
+  showScreen('screen-vote');
+
+  const total = state.gameSettings?.voteTime || 30;
+  let t = total;
+  document.getElementById('vote-timer').textContent = t;
+  document.getElementById('vote-timer-bar').style.width = '100%';
+  const ti = setInterval(() => {
+    t--;
+    document.getElementById('vote-timer').textContent = Math.max(0, t);
+    document.getElementById('vote-timer-bar').style.width = (Math.max(0, t) / total * 100) + '%';
+    if (t <= 0) clearInterval(ti);
+  }, 1000);
+  state.timerInterval = ti;
+}
+
+function selectVote(playerId) {
+  if (state.voteSubmitted) return;
+  state.myVote = playerId;
+  document.querySelectorAll('.answer-item').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById('vote-opt-' + playerId);
+  if (el) el.classList.add('selected');
+}
+
+function submitVote() {
+  if (!state.myVote) { notify('Select an answer to vote for!'); return; }
+  state.voteSubmitted = true;
+  document.getElementById('vote-submit-btn').style.display = 'none';
+  document.getElementById('vote-submitted-msg').style.display = 'block';
+
+  if (state.isHost) {
+    state.votes[state.myId] = state.myVote;
+    checkAllVoted();
+  } else {
+    sendToHost({ type: 'vote', vote: state.myVote });
+  }
+}
+
+// =====================================================
+//  RESULTS PHASE
+// =====================================================
+function showResultsPhase(prompt, answers, votes, scores) {
+  document.getElementById('results-prompt-text').textContent = prompt;
+
+  // Count votes per answer
+  const voteCounts = {};
+  Object.values(votes).forEach(v => { voteCounts[v] = (voteCounts[v] || 0) + 1; });
+  const maxVotes = Math.max(...Object.values(voteCounts), 0);
+
+  const container = document.getElementById('results-answers');
+  container.innerHTML = answers.map(a => {
+    const vCount = voteCounts[a.playerId] || 0;
+    const player = state.players.find(p => p.id === a.playerId);
+    const isWinner = vCount === maxVotes && vCount > 0;
+    return `
+      <div class="vote-option ${isWinner ? 'winning' : (vCount === 0 && maxVotes > 0 ? 'losing' : '')}">
+        <div>${a.answer}</div>
+        <div class="voter-name">${player?.name || 'Unknown'}</div>
+        <div class="vote-count">${vCount}</div>
+        <div style="font-size:12px;color:var(--muted);">${vCount === 1 ? 'vote' : 'votes'}</div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('results-next-area').style.display = state.isHost ? 'block' : 'none';
+  document.getElementById('results-wait-area').style.display = state.isHost ? 'none' : 'block';
+  
+  showScreen('screen-results');
+}
+
+// =====================================================
+//  SCOREBOARD
+// =====================================================
+function showScoreboardPhase(players, isHost) {
+  const sorted = [...players].sort((a, b) => b.score - a.score);
+  const ranks = ['gold', 'silver', 'bronze'];
+
+  const list = document.getElementById('score-list');
+  list.innerHTML = sorted.map((p, i) => {
+    const delta = p.score - (p.prevScore || 0);
+    return `
+      <li class="score-item">
+        <div class="score-rank ${ranks[i] || ''}">${i + 1}</div>
+        <div class="score-name">${p.name}${p.id === state.myId ? ' 👤' : ''}</div>
+        <div class="score-delta">${delta > 0 ? '+' + delta : ''}</div>
+        <div class="score-pts">${p.score}</div>
+      </li>
+    `;
+  }).join('');
+
+  document.getElementById('scoreboard-badge').textContent = `AFTER ROUND ${state.currentRound}`;
+  document.getElementById('scoreboard-next-area').style.display = isHost ? 'block' : 'none';
+  document.getElementById('scoreboard-wait-area').style.display = isHost ? 'none' : 'block';
+  showScreen('screen-scoreboard');
+}
+
+// =====================================================
+//  WINNER SCREEN
+// =====================================================
+function showWinnerPhase(players) {
+  const sorted = [...players].sort((a, b) => b.score - a.score);
+  const winner = sorted[0];
+  const ranks = ['gold', 'silver', 'bronze'];
+
+  document.getElementById('winner-name').textContent = `🏆 ${winner.name} WINS!`;
+  document.getElementById('winner-score').textContent = `${winner.score} points`;
+
+  const list = document.getElementById('final-score-list');
+  list.innerHTML = sorted.map((p, i) => `
+    <li class="score-item">
+      <div class="score-rank ${ranks[i] || ''}">${i + 1}</div>
+      <div class="score-name">${p.name}${p.id === state.myId ? ' 👤' : ''}</div>
+      <div class="score-pts">${p.score}</div>
+    </li>
+  `).join('');
+
+  showScreen('screen-winner');
+}
+
+// =====================================================
+//  UTILS
+// =====================================================
+function clearTimer() {
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function leaveGame() {
+  clearTimer();
+  if (state.peer) { state.peer.destroy(); state.peer = null; }
+  state = {
+    isHost: false, peer: null, connections: [], players: [], myId: null,
+    myName: '', hostConn: null, gameSettings: {}, currentRound: 0,
+    totalRounds: 5, prompts: [], currentPromptIdx: 0, answers: {}, votes: {},
+    timerInterval: null, phase: 'lobby', customPrompts: state.customPrompts || [],
+    myVote: null, myAnswer: '', answerSubmitted: false, voteSubmitted: false,
+  };
+  showScreen('screen-home');
+}
+
+function playAgain() {
+  leaveGame();
+  showScreen('screen-host-setup');
+}
+
+// Enter key support for join
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const active = document.querySelector('.screen.active');
+    if (active?.id === 'screen-join') joinGame();
+  }
+});
+
+// Auto-uppercase join code
+document.addEventListener('DOMContentLoaded', () => {
+  const codeInput = document.getElementById('join-code');
+  if (codeInput) codeInput.addEventListener('input', () => { codeInput.value = codeInput.value.toUpperCase(); });
+});
+</script>
+
+</body>
+</html>

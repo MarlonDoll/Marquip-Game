@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MARQUIP — The Party Answer Game</title>
+<title>SPITWIT — The Party Answer Game</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
@@ -476,6 +476,26 @@
   }
   .custom-prompt-item button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 18px; }
 
+  /* ===== RECAP ===== */
+  .recap-card { margin-bottom: 16px; }
+  .recap-prompt-num { font-family: var(--font-display); font-size: 13px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .recap-prompt-text { font-size: 17px; font-weight: 600; margin-bottom: 14px; line-height: 1.4; color: var(--text); }
+  .recap-answer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .recap-answer-winner { border-color: var(--accent2); background: rgba(255,204,0,0.06); }
+  .recap-answer-text { font-size: 15px; font-weight: 500; flex: 1; }
+  .recap-answer-meta { font-size: 12px; color: var(--muted); white-space: nowrap; letter-spacing: 0.5px; }
+
   @media(max-width: 600px) {
     .vote-options { grid-template-columns: 1fr; }
     .grid-2 { grid-template-columns: 1fr; }
@@ -714,7 +734,7 @@
 <!-- ===== HOME SCREEN ===== -->
 <div id="screen-home" class="screen active">
   <div class="container" style="padding-top: 60px;">
-    <span class="logo">MARQUIP</span>
+    <span class="logo">SPITWIT</span>
     <p class="tagline">The Party Answer Game · 2–32 Players</p>
     
     <div class="card">
@@ -738,7 +758,7 @@
 <!-- ===== HOST SETUP ===== -->
 <div id="screen-host-setup" class="screen">
   <div class="container" style="padding-top: 40px;">
-    <span class="logo" style="font-size: 48px;">MARQUIP</span>
+    <span class="logo" style="font-size: 48px;">SPITWIT</span>
     
     <div class="card">
       <div class="card-title">GAME SETTINGS</div>
@@ -814,12 +834,27 @@
             <span>Opens a big-screen TV view in a new window — perfect for casting to a TV</span>
           </div>
         </label>
+
+        <label class="setting-toggle">
+          <input type="checkbox" id="personal-prompts" checked>
+          <div class="setting-toggle-label">
+            <strong>👤 Personal Prompts</strong>
+            <span>Mix in prompts that reference actual player names — "What is [Player] definitely hiding?"</span>
+          </div>
+        </label>
       </div>
 
       <div id="tab-custom-prompts" style="display:none;">
         <label>Add a Custom Prompt</label>
-        <textarea id="custom-prompt-input" placeholder="Type a funny prompt... e.g. 'The worst possible name for a retirement home'"></textarea>
-        <button class="btn btn-secondary btn-sm" onclick="addCustomPrompt()" style="margin-bottom:16px;">+ Add Prompt</button>
+        <input type="text" id="custom-prompt-input" placeholder="Type a prompt and press Enter..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomPrompt();}">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;">
+          <button class="btn btn-secondary btn-sm" onclick="addCustomPrompt()">+ Add Prompt</button>
+          <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0;" title="Upload a .txt file — one prompt per line">
+            📂 Upload List
+            <input type="file" id="custom-prompt-file" accept=".txt" style="display:none;" onchange="importPromptsFromFile(this)">
+          </label>
+        </div>
+        <p class="text-muted" style="font-size:12px;margin-bottom:12px;">💡 Tip: Upload a .txt file with one prompt per line to bulk-add prompts.</p>
         
         <div id="custom-prompts-count" class="text-muted mb-4" style="font-size:13px;">0 custom prompts added</div>
         <ul class="custom-prompts-list" id="custom-prompts-list"></ul>
@@ -836,7 +871,7 @@
 <!-- ===== HOST LOBBY ===== -->
 <div id="screen-host-lobby" class="screen">
   <div class="container" style="padding-top: 40px;">
-    <span class="logo" style="font-size: 48px;">MARQUIP</span>
+    <span class="logo" style="font-size: 48px;">SPITWIT</span>
     
     <div class="card text-center">
       <div class="card-title text-center">SHARE THIS CODE</div>
@@ -861,7 +896,7 @@
 <!-- ===== JOIN SCREEN ===== -->
 <div id="screen-join" class="screen">
   <div class="container" style="padding-top: 60px;">
-    <span class="logo" style="font-size: 48px;">MARQUIP</span>
+    <span class="logo" style="font-size: 48px;">SPITWIT</span>
     
     <div class="card">
       <div class="card-title">JOIN A GAME</div>
@@ -885,7 +920,7 @@
 <!-- ===== PLAYER WAITING ===== -->
 <div id="screen-player-wait" class="screen">
   <div class="container" style="padding-top: 60px; text-align: center;">
-    <span class="logo" style="font-size: 48px;">MARQUIP</span>
+    <span class="logo" style="font-size: 48px;">SPITWIT</span>
     <div class="card" style="margin-top: 30px;">
       <div class="card-title">YOU'RE IN!</div>
       <p id="player-wait-name" style="font-size: 20px; font-weight: 600; margin-bottom: 16px;"></p>
@@ -899,7 +934,7 @@
 <!-- ===== ANSWERING SCREEN ===== -->
 <div id="screen-answer" class="screen">
   <div class="container" style="padding-top: 30px;">
-    <span class="logo" style="font-size: 36px; margin-bottom: 16px; display:block;">MARQUIP</span>
+    <span class="logo" style="font-size: 36px; margin-bottom: 16px; display:block;">SPITWIT</span>
     <div class="round-badge" id="answer-round-badge">ROUND 1 · PROMPT 1 OF 3</div>
     
     <div class="timer-text" id="answer-timer">60</div>
@@ -922,7 +957,7 @@
 <!-- ===== VOTING SCREEN ===== -->
 <div id="screen-vote" class="screen">
   <div class="container" style="padding-top: 30px;">
-    <span class="logo" style="font-size: 36px; margin-bottom: 16px; display:block;">MARQUIP</span>
+    <span class="logo" style="font-size: 36px; margin-bottom: 16px; display:block;">SPITWIT</span>
     <div class="round-badge" id="vote-round-badge">VOTE NOW!</div>
 
     <div id="tts-indicator" style="display:none;">
@@ -952,7 +987,7 @@
 <!-- ===== RESULTS SCREEN (host shows, players watch) ===== -->
 <div id="screen-results" class="screen">
   <div class="container" style="padding-top: 30px;">
-    <span class="logo" style="font-size: 36px; margin-bottom: 16px; display:block;">MARQUIP</span>
+    <span class="logo" style="font-size: 36px; margin-bottom: 16px; display:block;">SPITWIT</span>
     <div class="round-badge" id="results-badge">RESULTS</div>
     
     <div class="prompt-box">
@@ -973,7 +1008,7 @@
 <!-- ===== SCOREBOARD SCREEN ===== -->
 <div id="screen-scoreboard" class="screen">
   <div class="container" style="padding-top: 30px;">
-    <span class="logo" style="font-size: 48px; margin-bottom: 8px; display:block;">MARQUIP</span>
+    <span class="logo" style="font-size: 48px; margin-bottom: 8px; display:block;">SPITWIT</span>
     <div class="round-badge" id="scoreboard-badge">ROUND SCORES</div>
     
     <div class="card">
@@ -993,7 +1028,7 @@
 <!-- ===== FINAL WINNER SCREEN ===== -->
 <div id="screen-winner" class="screen">
   <div class="container" style="padding-top: 40px; text-align: center;">
-    <span class="logo" style="font-size: 60px; display:block;">MARQUIP</span>
+    <span class="logo" style="font-size: 60px; display:block;">SPITWIT</span>
     <div class="confetti">🎉🏆🎉</div>
     <div class="winner-banner" id="winner-name">WINNER!</div>
     <div class="text-muted" id="winner-score" style="font-size: 20px; margin-bottom: 30px;"></div>
@@ -1004,13 +1039,25 @@
     </div>
 
     <button class="btn btn-primary" onclick="playAgain()">PLAY AGAIN 🔄</button>
+    <button class="btn btn-secondary" onclick="showRecap()">📜 GAME RECAP</button>
     <button class="btn btn-secondary" onclick="leaveGame()">← HOME</button>
+  </div>
+</div>
+
+<!-- ===== RECAP SCREEN ===== -->
+<div id="screen-recap" class="screen">
+  <div class="container" style="padding-top: 40px;">
+    <span class="logo" style="font-size: 48px; display:block; text-align:center;">SPITWIT</span>
+    <div style="text-align:center;font-family:var(--font-display);font-size:28px;letter-spacing:3px;color:var(--accent2);margin-bottom:24px;">GAME RECAP</div>
+    <div id="recap-list"></div>
+    <button class="btn btn-secondary" onclick="showScreen('screen-winner')" style="margin-top:8px;">← BACK TO RESULTS</button>
+    <button class="btn btn-primary" onclick="playAgain()">PLAY AGAIN 🔄</button>
   </div>
 </div>
 
 <script>
 // =====================================================
-//  MARQUIP — FULL GAME LOGIC
+//  SPITWIT — FULL GAME LOGIC
 // =====================================================
 
 // ===== 300+ PROMPTS =====
@@ -1371,6 +1418,58 @@ const ALL_PROMPTS = [
 // Remove duplicates just in case
 const UNIQUE_PROMPTS = [...new Set(ALL_PROMPTS)];
 
+// ===== PERSONAL PROMPT TEMPLATES =====
+// Use [A] and [B] as placeholders for two different player names
+const PERSONAL_PROMPT_TEMPLATES = [
+  "What is [A] definitely hiding from their family?",
+  "The most likely reason [A] would get banned from a buffet",
+  "What [A] is actually doing when they say they're 'working from home'",
+  "The Wikipedia article [A] has read the most times",
+  "What [A]'s search history reveals about them",
+  "The most believable excuse [A] could give for being late",
+  "What [A]'s theme song would be, and why it's embarrassing",
+  "What [A] and [B] would argue about on a road trip",
+  "The business [A] would definitely start and immediately regret",
+  "What [A] would be arrested for in a Hallmark movie",
+  "The most likely thing [A] has lied about on a resume",
+  "What [A] orders at a restaurant that makes the waiter sigh",
+  "The superpower [A] would misuse immediately",
+  "What [A]'s diary entry from last Tuesday probably says",
+  "The red flag [A] displays that everyone politely ignores",
+  "What [A] and [B] would start a podcast about",
+  "The cult [A] would accidentally found",
+  "What [A] is definitely the villain of, but doesn't know it",
+  "The TV show [A]'s life is most like, and which character they are",
+  "What [A] would do with a million dollars in 48 hours",
+  "The award [A] would win at a work party that nobody wants",
+  "What [A] texts back immediately vs leaves on read for three days",
+  "The job [A] was born to do that doesn't exist yet",
+  "Why [A] and [B] would not survive together in an apocalypse",
+  "The thing [A] is weirdly competitive about",
+  "What [A]'s villain origin story is",
+  "The reality show [A] would absolutely win",
+  "What [A] would write in their Yelp review of heaven",
+  "The most [A] thing [A] has ever done",
+  "What [A] brings to every potluck no matter what",
+];
+
+function generatePersonalPrompts(players) {
+  if (players.length < 2) return [];
+  const names = players.map(p => p.name);
+  const result = [];
+  // Shuffle templates and generate ~20% of total prompts as personal
+  const shuffled = [...PERSONAL_PROMPT_TEMPLATES].sort(() => Math.random() - 0.5);
+  shuffled.forEach(template => {
+    // Pick two different random players
+    const a = names[Math.floor(Math.random() * names.length)];
+    let b = names[Math.floor(Math.random() * names.length)];
+    while (b === a && names.length > 1) b = names[Math.floor(Math.random() * names.length)];
+    const prompt = template.replace(/\[A\]/g, a).replace(/\[B\]/g, b);
+    result.push(prompt);
+  });
+  return result;
+}
+
 // =====================================================
 //  GAME STATE
 // =====================================================
@@ -1396,6 +1495,7 @@ let state = {
   myAnswer: '',
   answerSubmitted: false,
   voteSubmitted: false,
+  recap: [],      // [{prompt, winner: {name, answer}, allAnswers: [{name, answer, votes}]}]
 };
 
 // =====================================================
@@ -1430,6 +1530,24 @@ function addCustomPrompt() {
   state.customPrompts.push(text);
   input.value = '';
   renderCustomPrompts();
+}
+
+function importPromptsFromFile(fileInput) {
+  const file = fileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.split(/\r?\n/);
+    let added = 0;
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed) { state.customPrompts.push(trimmed); added++; }
+    });
+    fileInput.value = '';
+    renderCustomPrompts();
+    if (added > 0) notify(`✓ Added ${added} prompt${added !== 1 ? 's' : ''} from file`);
+  };
+  reader.readAsText(file);
 }
 
 function removeCustomPrompt(idx) {
@@ -1483,10 +1601,11 @@ function startHosting() {
     blindVoting: document.getElementById('blind-voting').checked,
     readAloud: document.getElementById('read-aloud').checked,
     hostDisplay: document.getElementById('host-display-mode').checked,
+    personalPrompts: document.getElementById('personal-prompts').checked,
   };
 
   const roomCode = generateRoomCode();
-  const peerId = 'marquip-' + roomCode;
+  const peerId = 'spitwit-' + roomCode;
 
   showScreen('screen-host-lobby');
   document.getElementById('room-code-display').textContent = roomCode;
@@ -1578,7 +1697,7 @@ function joinGame() {
 
   peer.on('open', (id) => {
     state.myId = id;
-    const hostId = 'marquip-' + code;
+    const hostId = 'spitwit-' + code;
     const conn = peer.connect(hostId);
     state.hostConn = conn;
 
@@ -1620,6 +1739,7 @@ function handleHostMessage(data) {
       state.gameSettings = data.settings;
       state.totalRounds = data.settings.rounds;
       state.players = data.players;
+      state.recap = [];
       break;
     case 'round-start':
       state.currentRound = data.round;
@@ -1632,6 +1752,7 @@ function handleHostMessage(data) {
       startVotingPhase(data.prompt, data.answers, data.round, data.promptIdx, data.totalPrompts);
       break;
     case 'results':
+      if (data.recapEntry) state.recap.push(data.recapEntry);
       showResultsPhase(data.prompt, data.answers, data.votes, data.scores);
       break;
     case 'scoreboard':
@@ -1686,6 +1807,14 @@ function hostStartGame() {
     pool = [...pool, ...settings.customPrompts];
   }
 
+  // Inject personal prompts (targeting ~25% of the pool)
+  if (settings.personalPrompts && state.players.length >= 2) {
+    const personalPool = generatePersonalPrompts(state.players);
+    const targetPersonal = Math.max(2, Math.ceil(settings.rounds * 0.5));
+    const toAdd = personalPool.slice(0, targetPersonal);
+    pool = [...pool, ...toAdd];
+  }
+
   // Shuffle and pick
   shuffle(pool);
   const promptsPerRound = Math.min(3, Math.ceil(state.players.length / 2));
@@ -1693,6 +1822,7 @@ function hostStartGame() {
   state.totalRounds = settings.rounds;
   state.currentRound = 0;
   state.currentPromptIdx = 0;
+  state.recap = [];
 
   broadcastToAll({ type: 'game-start', settings, players: state.players });
   if (state.gameSettings.hostDisplay) {
@@ -1803,7 +1933,26 @@ function hostTallyVotes() {
   const scores = {};
   state.players.forEach(p => scores[p.id] = p.score);
 
-  broadcastToAll({ type: 'results', prompt, answers: answersArr, votes: state.votes, scores });
+  // Track for recap
+  const voteCounts2 = {};
+  Object.values(state.votes).forEach(v => { voteCounts2[v] = (voteCounts2[v] || 0) + 1; });
+  const maxVotes2 = Math.max(...Object.values(voteCounts2), 0);
+  const recapEntry = {
+    prompt,
+    allAnswers: answersArr.map(a => {
+      const player = state.players.find(p => p.id === a.playerId);
+      return { name: player?.name || '?', answer: a.answer, votes: voteCounts2[a.playerId] || 0 };
+    }),
+    winner: (() => {
+      const winnerId = Object.entries(voteCounts2).sort((a,b) => b[1]-a[1])[0]?.[0];
+      const winnerAnswer = answersArr.find(a => a.playerId === winnerId);
+      const winnerPlayer = state.players.find(p => p.id === winnerId);
+      return maxVotes2 > 0 ? { name: winnerPlayer?.name || '?', answer: winnerAnswer?.answer || '' } : null;
+    })()
+  };
+  state.recap.push(recapEntry);
+
+  broadcastToAll({ type: 'results', prompt, answers: answersArr, votes: state.votes, scores, recapEntry });
   showResultsPhase(prompt, answersArr, state.votes, scores);
 }
 
@@ -2074,6 +2223,37 @@ function showWinnerPhase(players) {
   tvUpdate('winner', { players: sorted });
 }
 
+function showRecap() {
+  const container = document.getElementById('recap-list');
+  if (!state.recap || state.recap.length === 0) {
+    container.innerHTML = '<p class="text-muted" style="text-align:center;padding:20px;">No recap data yet — play a full game first!</p>';
+    showScreen('screen-recap');
+    return;
+  }
+
+  container.innerHTML = state.recap.map((entry, i) => {
+    const answersHtml = entry.allAnswers
+      .sort((a, b) => b.votes - a.votes)
+      .map(a => {
+        const isWinner = entry.winner && a.answer === entry.winner.answer && a.name === entry.winner.name;
+        return `
+          <div class="recap-answer ${isWinner ? 'recap-answer-winner' : ''}">
+            <span class="recap-answer-text">${a.answer}</span>
+            <span class="recap-answer-meta">${a.name} · ${a.votes} ${a.votes === 1 ? 'vote' : 'votes'}${isWinner ? ' 🏆' : ''}</span>
+          </div>`;
+      }).join('');
+
+    return `
+      <div class="card recap-card">
+        <div class="recap-prompt-num">PROMPT ${i + 1}</div>
+        <div class="recap-prompt-text">${entry.prompt}</div>
+        ${answersHtml}
+      </div>`;
+  }).join('');
+
+  showScreen('screen-recap');
+}
+
 // =====================================================
 //  UTILS
 // =====================================================
@@ -2135,14 +2315,14 @@ let tvWindow = null;
 
 function openHostDisplay() {
   // Open a new window and render the TV display inside it using postMessage
-  tvWindow = window.open('', 'MarquipTV', 'width=1280,height=720,menubar=no,toolbar=no,location=no');
+  tvWindow = window.open('', 'SpitWitTV', 'width=1280,height=720,menubar=no,toolbar=no,location=no');
   if (!tvWindow) { notify('Allow popups to use TV mode!'); return; }
 
   tvWindow.document.write(`<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>MARQUIP — TV Display</title>
+<title>SPITWIT — TV Display</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap');
   :root {
@@ -2183,12 +2363,12 @@ function openHostDisplay() {
 </head>
 <body>
 <div class="wrap"><div id="tv" style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;">
-  <div class="logo">MARQUIP</div>
+  <div class="logo">SPITWIT</div>
   <div class="phase">LOADING...</div>
 </div></div>
 <script>
   window.addEventListener('message', (e) => {
-    if (e.data && e.data.marquipTV) render(e.data);
+    if (e.data && e.data.spitwitTV) render(e.data);
   });
   let timerInterval = null;
   function render(data) {
@@ -2197,7 +2377,7 @@ function openHostDisplay() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     if (phase === 'lobby') {
       tv.innerHTML = \`
-        <div class="logo">MARQUIP</div>
+        <div class="logo">SPITWIT</div>
         <div class="phase">WAITING FOR PLAYERS</div>
         <div style="color:#6a6a85;font-size:18px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">Room Code</div>
         <div class="room-code">\${data.roomCode}</div>
@@ -2207,7 +2387,7 @@ function openHostDisplay() {
     } else if (phase === 'answering') {
       let t = data.timerTotal || 60;
       tv.innerHTML = \`
-        <div class="logo" style="font-size:32px;">MARQUIP</div>
+        <div class="logo" style="font-size:32px;">SPITWIT</div>
         <div class="phase">ROUND \${data.round} · ANSWER TIME</div>
         <div class="prompt-box">\${data.prompt}</div>
         <div class="timer" id="tv-timer">\${t}</div>
@@ -2225,7 +2405,7 @@ function openHostDisplay() {
     } else if (phase === 'voting') {
       let t = data.timerTotal || 30;
       tv.innerHTML = \`
-        <div class="logo" style="font-size:32px;">MARQUIP</div>
+        <div class="logo" style="font-size:32px;">SPITWIT</div>
         <div class="phase">VOTING</div>
         \${data.isBlind ? '<div class="blind-badge">🕵️ Blind Voting</div>' : ''}
         <div class="prompt-box" style="margin-bottom:16px;">\${data.prompt}</div>
@@ -2244,7 +2424,7 @@ function openHostDisplay() {
       }, 1000);
     } else if (phase === 'results') {
       tv.innerHTML = \`
-        <div class="logo" style="font-size:32px;">MARQUIP</div>
+        <div class="logo" style="font-size:32px;">SPITWIT</div>
         <div class="phase">RESULTS</div>
         <div class="prompt-box" style="margin-bottom:16px;">\${data.prompt}</div>
         <div class="answers">\${data.answers.map(a => {
@@ -2262,7 +2442,7 @@ function openHostDisplay() {
     } else if (phase === 'scoreboard') {
       const ranks = ['gold','silver','bronze'];
       tv.innerHTML = \`
-        <div class="logo" style="font-size:40px;">MARQUIP</div>
+        <div class="logo" style="font-size:40px;">SPITWIT</div>
         <div class="phase">LEADERBOARD · AFTER ROUND \${data.round}</div>
         <ul class="score-list">\${data.players.map((p,i)=>\`
           <li class="score-item">
@@ -2276,7 +2456,7 @@ function openHostDisplay() {
       const w = data.players[0];
       const ranks = ['gold','silver','bronze'];
       tv.innerHTML = \`
-        <div class="logo">MARQUIP</div>
+        <div class="logo">SPITWIT</div>
         <div style="font-size:40px;margin:10px 0;">🎉🏆🎉</div>
         <div class="winner-banner">🏆 \${w.name} WINS!</div>
         <div style="color:#6a6a85;font-size:22px;margin:8px 0 24px;">\${w.score} points</div>
@@ -2299,7 +2479,7 @@ function openHostDisplay() {
 
 function tvUpdate(phase, data) {
   if (!tvWindow || tvWindow.closed) return;
-  tvWindow.postMessage({ marquipTV: true, phase, ...data }, '*');
+  tvWindow.postMessage({ spitwitTV: true, phase, ...data }, '*');
 }
 
 function tvUpdateTimer(type, t, total) {

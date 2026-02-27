@@ -112,16 +112,6 @@
     margin-bottom: 4px;
   }
 
-  /* ===== SPEECH BUBBLE SVG LOGO ===== */
-  .logo-svg {
-    width: 100%;
-    max-width: 600px;
-    display: block;
-    margin: 0 auto;
-    animation: logoFloat 7s ease-in-out infinite;
-    overflow: visible;
-  }
-
   .logo-wrap::before {
     content: '✦';
     position: absolute;
@@ -147,7 +137,7 @@
   .tagline {
     text-align: center;
     color: var(--muted);
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     letter-spacing: 0.3px;
     margin-top: 8px;
@@ -515,34 +505,11 @@
 <!-- ===== HOME SCREEN ===== -->
 <div id="screen-home" class="screen active">
   <div class="container" style="padding-top: 60px;">
-    <div class="logo-wrap">
-      <svg class="logo-svg" viewBox="0 0 640 215" xmlns="http://www.w3.org/2000/svg" aria-label="SPITWIT" role="img">
-        <!-- Ink depth shadow -->
-        <path transform="translate(7,7)"
-          d="M 44 8 L 596 8 Q 632 8 632 44 L 632 127 Q 632 163 596 163 L 180 163 L 100 207 L 60 163 L 44 163 Q 8 163 8 127 L 8 44 Q 8 8 44 8 Z"
-          fill="#1a0a3e"/>
-        <!-- Bubble fill + border -->
-        <path
-          d="M 44 8 L 596 8 Q 632 8 632 44 L 632 127 Q 632 163 596 163 L 180 163 L 100 207 L 60 163 L 44 163 Q 8 163 8 127 L 8 44 Q 8 8 44 8 Z"
-          fill="#17132a" stroke="#1a0a3e" stroke-width="5" stroke-linejoin="round"/>
-        <!-- SPITWIT text — SPIT in red, WIT in yellow -->
-        <text
-          font-family="'Fredoka One', cursive"
-          font-size="115"
-          stroke="#1a0a3e"
-          stroke-width="8"
-          paint-order="stroke fill"
-          text-anchor="middle"
-          dominant-baseline="central"
-          y="88">
-          <tspan x="185" fill="#ff4757">SPIT</tspan><tspan fill="#ffd32a">WIT</tspan>
-        </text>
-      </svg>
-    </div>
+    <div class="logo-wrap"><span class="logo">SPITWIT</span></div>
     <p class="tagline">Drop your wittiest answer. Let the room vote.<br>May the funniest win.</p>
 
-    <button class="btn btn-primary home-btn" onclick="window.showScreen('screen-host-setup')">🎮 HOST A GAME</button>
-    <button class="btn btn-outline home-btn" onclick="window.showScreen('screen-join')">JOIN A GAME</button>
+    <button class="btn btn-accent home-btn" onclick="window.showScreen('screen-host-setup')">HOST A GAME</button>
+    <button class="btn btn-primary home-btn" onclick="window.showScreen('screen-join')">JOIN A GAME</button>
 
     <div class="quick-join">
       <input type="text" id="quick-join-code" placeholder="ROOM CODE" maxlength="10" autocomplete="off" spellcheck="false">

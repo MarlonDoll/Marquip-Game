@@ -455,10 +455,10 @@
   @keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(110vh) rotate(820deg); opacity: 0; } }
 
   /* ===== HOME SCREEN ===== */
-  .home-btn { margin-bottom: 12px; max-width: 460px; margin-left: auto; margin-right: auto; }
+  .home-btn { margin-bottom: 12px; }
 
   /* ===== QUICK JOIN ===== */
-  .quick-join { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; margin-top: 4px; max-width: 460px; margin-left: auto; margin-right: auto; }
+  .quick-join { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; margin-top: 4px; }
   .quick-join input { flex: 1; margin-bottom: 0; text-transform: uppercase; font-family: var(--font-display); font-size: 22px; letter-spacing: 4px; text-align: center; }
   .quick-join .btn { width: auto; flex-shrink: 0; margin-bottom: 0; padding: 13px 22px; font-size: 20px; }
 
@@ -508,8 +508,8 @@
     <div class="logo-wrap"><span class="logo">SPITWIT</span></div>
     <p class="tagline">Drop your wittiest answer. Let the room vote.<br>May the funniest win.</p>
 
-    <button class="btn btn-primary home-btn" onclick="window.showScreen('screen-host-setup')">HOST A GAME</button>
-    <button class="btn btn-outline home-btn" onclick="window.showScreen('screen-join')">JOIN A GAME</button>
+    <button class="btn btn-accent home-btn" onclick="window.showScreen('screen-host-setup')">HOST A GAME</button>
+    <button class="btn btn-primary home-btn" onclick="window.showScreen('screen-join')">JOIN A GAME</button>
 
     <div class="quick-join">
       <input type="text" id="quick-join-code" placeholder="ROOM CODE" maxlength="10" autocomplete="off" spellcheck="false">

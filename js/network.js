@@ -325,6 +325,13 @@ export function handleHostMessage(data) {
       startAnsweringPhase(data.prompt, data.round, data.promptIdx, data.totalPrompts);
       break;
     case 'voting':
+      if (!state.answerSubmitted) {
+        const partial = document.getElementById('answer-input')?.value.trim();
+        if (partial) {
+          state.answerSubmitted = true;
+          sendReliable({ type: 'answer', answer: partial });
+        }
+      }
       startVotingPhase(data.prompt, data.answers, data.round, data.promptIdx, data.totalPrompts);
       break;
     case 'results':

@@ -102,7 +102,12 @@ export function hostNextPrompt() {
       // Fill any unanswered players
       state.players.forEach(p => {
         if (!p.disconnected && state.answers[p.id] === undefined) {
-          state.answers[p.id] = '(no answer)';
+          if (p.id === state.myId) {
+            const partial = document.getElementById('answer-input')?.value.trim();
+            state.answers[p.id] = partial || '(no answer)';
+          } else {
+            state.answers[p.id] = '(no answer)';
+          }
         } else if (p.disconnected && state.answers[p.id] === undefined) {
           state.answers[p.id] = '(disconnected)';
         }
